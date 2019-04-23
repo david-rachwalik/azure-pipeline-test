@@ -1,8 +1,5 @@
-﻿# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
+﻿# ASP.NET Core - CI/CD
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-# https://github.com/Microsoft/azure-pipelines-yaml/blob/master/templates/asp.net-core.yml
 
 trigger:
 - master
@@ -14,9 +11,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-# ------------------------ DMR-Azure Web App for ASP.NET-CI ------------------------
-# Below copied from Azure DevOps generated CI; were no warnings in designer
-# ----------------------------------------------------------------------------------
 - task: NuGetToolInstaller@0
   displayName: 'Use NuGet 4.4.1'
   inputs:
@@ -26,3 +20,40 @@ steps:
   displayName: 'NuGet restore'
   inputs:
     restoreSolution: '$(Parameters.solution)'
+    
+- task: VSBuild@1
+  displayName: 'Build solution **\*.sln'
+  inputs:
+    solution: '$(Parameters.solution)'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+    
+- task: VSTest@2
+  displayName: 'VsTest - testAssemblies'
+  inputs:
+    testAssemblyVer2: |
+     **\$(BuildConfiguration)\*test*.dll
+     !**\obj\**
+    platform: '$(BuildPlatform)'
+    configuration: '$(BuildConfiguration)'
+
+- task: AzureRmWebAppDeployment@4
+  displayName: 'Azure App Service Deploy'
+  inputs:
+    azureSubscription: '$(Parameters.connectedServiceName)'
+    WebAppName: '$(Parameters.WebAppName)'
+    packageForLinux: '$(build.artifactstagingdirectory)/**/*.zip'
+
+- task: PublishSymbols@2
+  displayName: 'Publish symbols path'
+  inputs:
+    SearchPattern: '**\bin\**\*.pdb'
+    PublishSymbols: false
+  continueOnError: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: drop'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
+  condition: succeededOrFailed()
