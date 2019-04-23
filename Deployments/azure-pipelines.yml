@@ -42,30 +42,3 @@ steps:
      !**\obj\**
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
-
-
-# -------- CD --------
-# https://docs.microsoft.com/en-us/azure/devops/pipelines/targets/webapp
-# https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure
-# Task         : Azure App Service Deploy
-- task: AzureRmWebAppDeployment@4
-  displayName: 'Azure App Service Deploy: webSiteienua2xiqn3ye'
-  inputs:
-    azureSubscription: '$(Parameters.ConnectedServiceName)'
-    WebAppName: '$(WebAppName)'
-    packageForLinux: '$(Build.ArtifactStagingDirectory)/**/*.zip'
-
-# Task         : Index Sources & Publish Symbols
-- task: PublishSymbols@2
-  displayName: 'Publish symbols path'
-  inputs:
-    SearchPattern: '**\bin\**\*.pdb'
-    PublishSymbols: false
-  continueOnError: true
-
-# Task         : Publish Build Artifacts
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: drop'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-  condition: succeededOrFailed()
