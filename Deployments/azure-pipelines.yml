@@ -12,12 +12,12 @@ variables:
 
 steps:
 - task: NuGetToolInstaller@0
-  displayName: 'Use NuGet 4.4.1'
+  displayName: 'Acquire NuGet'
   inputs:
     versionSpec: 4.4.1
     
 - task: NuGetCommand@2
-  displayName: 'NuGet restore'
+  displayName: 'Restore NuGet packages'
   inputs:
     restoreSolution: '$(Parameters.solution)'
     
@@ -37,23 +37,3 @@ steps:
      !**\obj\**
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
-
-- task: AzureRmWebAppDeployment@4
-  displayName: 'Azure App Service Deploy'
-  inputs:
-    azureSubscription: '$(Parameters.connectedServiceName)'
-    WebAppName: '$(Parameters.WebAppName)'
-    packageForLinux: '$(build.artifactstagingdirectory)/**/*.zip'
-
-- task: PublishSymbols@2
-  displayName: 'Publish symbols path'
-  inputs:
-    SearchPattern: '**\bin\**\*.pdb'
-    PublishSymbols: false
-  continueOnError: true
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: drop'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-  condition: succeededOrFailed()
