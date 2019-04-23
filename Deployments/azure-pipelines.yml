@@ -8,7 +8,8 @@ pool:
   vmImage: 'vs2017-win2016'
 
 variables:
-  buildConfiguration: 'Release'
+  BuildConfiguration: 'release'
+  BuildPlatform: 'any cpu'
 
 steps:
 # Restore dependencies
@@ -27,7 +28,7 @@ steps:
   displayName: 'Build solution **\*.sln'
   inputs:
     solution: '$(Parameters.solution)'
-    # msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(Build.ArtifactStagingDirectory)\\"'
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
    
