@@ -2,22 +2,18 @@
 # Build and test ASP.NET Core projects targeting .NET Core.
 # Add steps that run tests, create a NuGet package, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
 # https://github.com/Microsoft/azure-pipelines-yaml/blob/master/templates/asp.net-core.yml
 
 trigger:
 - master
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'vs2017-win2016'
 
 variables:
   buildConfiguration: 'Release'
 
 steps:
-# - script: dotnet build --configuration $(buildConfiguration)
-#   displayName: 'dotnet build $(buildConfiguration)'
-
 # ------------------------ DMR-Azure Web App for ASP.NET-CI ------------------------
 # Below copied from Azure DevOps generated CI; were no warnings in designer
 # ----------------------------------------------------------------------------------
@@ -25,58 +21,3 @@ steps:
   displayName: 'Use NuGet 4.4.1'
   inputs:
     versionSpec: 4.4.1
-
-#Your build pipeline references an undefined variable named ‘Parameters.solution’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-
-- task: NuGetCommand@2
-  displayName: 'NuGet restore'
-  inputs:
-    restoreSolution: '$(Parameters.solution)'
-
-#Your build pipeline references an undefined variable named ‘Parameters.solution’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-#Your build pipeline references the ‘BuildPlatform’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-#Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-
-- task: VSBuild@1
-  displayName: 'Build solution **\*.sln'
-  inputs:
-    solution: '$(Parameters.solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
-    platform: '$(BuildPlatform)'
-    configuration: '$(BuildConfiguration)'
-
-#Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-#Your build pipeline references the ‘BuildPlatform’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-#Your build pipeline references the ‘BuildConfiguration’ variable, which you’ve selected to be settable at queue time. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab, and then select the option to make it settable at queue time. See https://go.microsoft.com/fwlink/?linkid=865971
-
-- task: VSTest@2
-  displayName: 'VsTest - testAssemblies'
-  inputs:
-    testAssemblyVer2: |
-     **\$(BuildConfiguration)\*test*.dll
-     !**\obj\**
-    platform: '$(BuildPlatform)'
-    configuration: '$(BuildConfiguration)'
-
-#Your build pipeline references an undefined variable named ‘Parameters.connectedServiceName’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-#Your build pipeline references an undefined variable named ‘Parameters.WebAppName’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
-
-- task: AzureRmWebAppDeployment@4
-  displayName: 'Azure App Service Deploy'
-  inputs:
-    azureSubscription: '$(Parameters.connectedServiceName)'
-    WebAppName: '$(Parameters.WebAppName)'
-    packageForLinux: '$(build.artifactstagingdirectory)/**/*.zip'
-
-- task: PublishSymbols@2
-  displayName: 'Publish symbols path'
-  inputs:
-    SearchPattern: '**\bin\**\*.pdb'
-    PublishSymbols: false
-  continueOnError: true
-
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact: drop'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-  condition: succeededOrFailed()
