@@ -11,6 +11,7 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+# Restore dependencies
 - task: NuGetToolInstaller@0
   displayName: 'Acquire NuGet'
   inputs:
@@ -20,15 +21,17 @@ steps:
   displayName: 'Restore NuGet packages'
   inputs:
     restoreSolution: '$(Parameters.solution)'
-    
+
+# Build your project
 - task: VSBuild@1
   displayName: 'Build solution **\*.sln'
   inputs:
     solution: '$(Parameters.solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
+    # msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactstagingdirectory)\\"'
     platform: '$(BuildPlatform)'
     configuration: '$(BuildConfiguration)'
-    
+   
+# Run your tests
 - task: VSTest@2
   displayName: 'VsTest - testAssemblies'
   inputs:
